@@ -3,14 +3,14 @@
 
 struct{
     /* data */
-    uint8_t *ip;
+    __uint8_t *ip;
 
     /*Fixed size stack*/
-    uint8_t stack[STACK_MAX];
-    uint8_t *stack_top;
+    __uint64_t stack[STACK_MAX];
+    __uint64_t *stack_top;
 
     /*Register used to find the result*/
-    uint8_t result;
+    __uint64_t result;
 } vm;
 
 typedef enum{
@@ -65,40 +65,40 @@ interpret_result vm_interpret(__uint8_t *bytecode){
         switch (instruction)
         {
         case OP_PUSHI:
-            __uint8_t arg = *vm.ip++;
+            __uint64_t arg = *vm.ip++;
             vm_stack_push(arg);
             break;
         case OP_ADD:
-            __uint8_t arg1 = vm_stack_pop();
-            __uint8_t arg2 = vm_stack_pop();
-            __uint8_t resul = arg1+arg2;
+            __uint64_t arg1 = vm_stack_pop();
+            __uint64_t arg2 = vm_stack_pop();
+            __uint64_t resul = arg1+arg2;
             vm_stack_push(resul);
             break;
         case OP_SUB:
-            __uint8_t arg1 = vm_stack_pop();
-            __uint8_t arg2 = vm_stack_pop();
-            __uint8_t resul = arg1-arg2;
+            __uint64_t arg1 = vm_stack_pop();
+            __uint64_t arg2 = vm_stack_pop();
+            __uint64_t resul = arg1-arg2;
             vm_stack_push(resul);
             break;
         case OP_DIV:
-            __uint8_t arg1 = vm_stack_pop();
-            __uint8_t arg2 = vm_stack_pop();
+            __uint64_t arg1 = vm_stack_pop();
+            __uint64_t arg2 = vm_stack_pop();
             if(arg1== 0){
                 return ERROR_DIVISION_BY_ZERO;
             }
             else{
-                __uint8_t resul = arg1/arg2;
+                __uint64_t resul = arg1/arg2;
                 vm_stack_push(resul);
             }
             break;
         case OP_MUL:
-            __uint8_t arg1 = vm_stack_pop();
-            __uint8_t arg2 = vm_stack_pop();
-            __uint8_t resul = arg1*arg2;
+            __uint64_t arg1 = vm_stack_pop();
+            __uint64_t arg2 = vm_stack_pop();
+            __uint64_t resul = arg1*arg2;
             vm_stack_push(resul);
             break;
         case OP_POP_RES:
-            __uint8_t resul = vm_stack_pop();
+            __uint64_t resul = vm_stack_pop();
             vm.result=resul;
             break;
         case OP_DONE:
