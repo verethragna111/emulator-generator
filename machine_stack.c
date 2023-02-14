@@ -44,15 +44,68 @@ void vm_reset(){
     vm.stack_top=vm.stack;
 }
 
-void stack_push(__uint64_t value){
+void vm_stack_push(__uint64_t value){
     /*The memory location that is pointed by the stack_top saves value*/
     *vm.stack_top=value;
     /*We add one byte to the memory location that stack_top was looking at, this is the new top of the stack*/
     vm.stack_top++;
 }
 
-__uint64_t stack_pop(){
+__uint64_t vm_stack_pop(){
     vm.stack_top--;
     return *vm.stack_top;
 }
 
+interpret_result vm_interpret(__uint8_t *bytecode){
+    vm_reset();
+    puts("Start interpreting");
+    vm.ip=bytecode;
+    for(;;){
+        __uint8_t instruction = *vm.ip++;
+        switch (instruction)
+        {
+        case OP_PUSHI:
+            __uint8_t arg = *vm.ip++;
+            vm_stack_push(arg);
+            break;
+        case OP_ADD:
+            __uint8_t arg1 = vm_stack_pop();
+            __uint8_t arg2 = vm_stack_pop();
+            __uint8_t resul = arg1+arg2;
+            vm_stack_push(resul);
+            break;
+        case OP_SUB:
+            __uint8_t arg1 = vm_stack_pop();
+            __uint8_t arg2 = vm_stack_pop();
+            __uint8_t resul = arg1-arg2;
+            vm_stack_push(resul);
+            break;
+        case OP_DIV:
+            __uint8_t arg1 = vm_stack_pop();
+            __uint8_t arg2 = vm_stack_pop();
+            if(arg1== 0){
+                return ERROR_DIVISION_BY_ZERO;
+            }
+            else{
+                __uint8_t resul = arg1/arg2;
+                vm_stack_push(resul);
+            }
+            break;
+        case OP_MUL:
+            __uint8_t arg1 = vm_stack_pop();
+            __uint8_t arg2 = vm_stack_pop();
+            __uint8_t resul = arg1*arg2;
+            vm_stack_push(resul);
+            break;
+        case OP_POP_RES:
+            __uint8_t resul = vm_stack_pop();
+            vm.result=resul;
+            break;
+        case OP_DONE:
+            return SUCCESS;
+        default:
+            return ERROR_UNKOWN_OPCODE;
+        }
+    }
+    return SUCCESS;
+}
