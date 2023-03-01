@@ -14,6 +14,11 @@ typedef enum {
     HLT,
 } instructionSet;
 
+typedef enum{
+    A, B, C, D, E, F,
+    NUM_OF_REGISTERS,
+} Registers;
+
 const int program[] = {
     PSH, 5, 
     PSH, 6, 
@@ -54,8 +59,7 @@ void val(int instr){
         break;
     }
     case PSH:{
-        ip++;
-        push(program[ip]);
+        push(program[++ip]);
         break;
     }
     case POP:{
@@ -70,7 +74,6 @@ void val(int instr){
         push(resul);
         break;
     }
-
     default:
         break;
     }
