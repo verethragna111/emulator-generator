@@ -156,6 +156,8 @@ int main(int argc, const char* argv[])
 
                 reg[r0] = ~reg[r1];
 
+                update_flags[r0];
+
 
                 break;
             case OP_BR:
