@@ -149,8 +149,13 @@ int main(int argc, const char* argv[])
 
                 break;
             case OP_NOT:
-                
-                
+
+                __uint16_t r0 = (instr >> 9) & 0x7;
+
+                __uint16_t r1 = (instr >> 6) & 0x7;
+
+                reg[r0] = ~reg[r1];
+
 
                 break;
             case OP_BR:
@@ -168,12 +173,46 @@ int main(int argc, const char* argv[])
 
                 break;
             case OP_JMP:
+
+                __uint16_t base = (instr >> 6) & 0x7;
+
+                reg[R_PC] = reg[base];
+
                 break;
             case OP_JSR:
+
+                reg[R_R7] = reg[R_PC];
+
+                __uint16_t imm_flag = (instr >> 11) & 0x1;
+
+                if(imm_flag){
+
+                    __uint16_t pc_offset = sign_extend(instr & 0x3FF, 11);
+                    reg[R_PC]+=pc_offset;
+                
+                }
+                else{
+
+                    __uint16_t baseR = (instr >> 6) & 0x7;
+                    reg[R_PC] = reg[baseR];
+                
+                }
+
+
                 break;
             case OP_LD:
+
+                __uint16_t r0 = (instr >> 9) & 0x7;
+
+                __uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+
+                reg[r0] = mem_read(reg[R_PC]+pc_offset);
+
+                update_flags(r0);
+
                 break;
             case OP_LDI:
+
                 /*The register where we will store the value*/
                 __uint16_t r0 = (instr >> 9) & 0x7;
                 
@@ -186,13 +225,33 @@ int main(int argc, const char* argv[])
                 /*Recording into the register the value in memory, we get there by adding the PC with its offset*/
                 reg[r0] = mem_read(mem_read(reg[R_PC]+pc_offset));
 
-                update_flags(reg[r0]);
+                update_flags(r0);
 
                 
                 break;
             case OP_LDR:
+
+                __uint16_t r0 = (instr >> 9) & 0x7;
+
+                __uint16_t baseR = (instr >> 6) & 0x7;
+
+                __uint16_t offset = sign_extend(instr & 0x3F, 6);
+
+                reg[r0] = mem_read(reg[baseR] + offset);
+
+                update_flags(r0);
+
                 break;
             case OP_LEA:
+
+                __uint16_t r0 = (instr >> 9) & 0x7;
+
+                __uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+
+                reg[r0] = reg[R_PC] + pc_offset;
+
+                update_flags(r0);
+
                 break;
             case OP_ST:
                 break;
@@ -203,7 +262,11 @@ int main(int argc, const char* argv[])
             case OP_TRAP:
                 break;
             case OP_RES:
+                abort();
+                break;
             case OP_RTI:
+                abort();
+                break;
             default:
                 break;
         }
