@@ -85,7 +85,7 @@ int main(int argc, const char* argv[])
         }
     }
     
-    signal(SIGINT, handle_interrupt);
+    signal(SIGINT, SIG_IGN);
     disable_input_buffering();
 
     /* since exactly one condition flag should be set at any given time, set the Z flag */
@@ -100,18 +100,72 @@ int main(int argc, const char* argv[])
     while (running)
     {
         /* FETCH */
-        uint16_t instr = mem_read(reg[R_PC]++);
-        uint16_t op = instr >> 12;
+        __uint16_t instr = mem_read(reg[R_PC]++);
+        __uint16_t op = instr >> 12;
 
         switch (op)
         {
             case OP_ADD:
+                /*Destination register*/
+                __uint16_t r0 = (instr >> 9) & 0x7;
+                /*Source of the register 1*/
+                __uint16_t re1 = (instr >> 6) & 0x7;
+                /*See the value of imm bit*/
+                __uint16_t imm_flag = (instr >> 5) & 0x1;
+
+                if(imm_flag == 1){
+                    __uint16_t imm = sign_extend((instr & 0x1F), 5);
+                    reg[r0] = reg[re1] + imm;
+                }
+                else{
+                    __uint16_t re2 = instr & 0x7;
+                    reg[r0] = reg[re1] + reg[re2];
+                }
+                
+                update_flags(r0);
+
                 break;
             case OP_AND:
+
+                /*Destination register*/
+                __uint16_t r0 = (instr >> 9) & 0x7;
+
+                __uint16_t r1 = (instr >> 6) & 0x7;
+
+                __uint16_t imm_flag = (instr >> 5) & 0x1; 
+
+                if(imm_flag){
+                    __uint16_t r2 = sign_extend(instr & 0x1F, 5);
+
+                    reg[r0] = reg[r1] & r2;
+                }
+                else{
+                    __uint16_t r2 = instr & 0x7;
+
+                    reg[r0] = reg[r1] & reg[r2];
+                }
+
+                update_flags(reg[r0]);
+
                 break;
             case OP_NOT:
+                
+                
+
                 break;
             case OP_BR:
+            
+                __uint16_t n = (instr >> 9) & 0x1;
+                __uint16_t z = (instr >> 9) & 0x2;
+                __uint16_t p = (instr >> 9) & 0x4;
+                
+
+                if ((n == reg[R_COND]) || (z == reg[R_COND]) || (p == reg[R_COND])){
+                    __uint16_t pc_offset = instr & 0x1FF;
+                    reg[R_PC] = reg[R_PC] + sign_extend(pc_offset, 9);
+                }
+
+
                 break;
             case OP_JMP:
                 break;
@@ -120,6 +174,21 @@ int main(int argc, const char* argv[])
             case OP_LD:
                 break;
             case OP_LDI:
+                /*The register where we will store the value*/
+                __uint16_t r0 = (instr >> 9) & 0x7;
+                
+                /*The pc_offset*/
+                __uint16_t pc_offset = instr & 0x1FF;
+                
+                /*Extending the pc_offset*/
+                pc_offset = sign_extend(pc_offset, 9);
+
+                /*Recording into the register the value in memory, we get there by adding the PC with its offset*/
+                reg[r0] = mem_read(mem_read(reg[R_PC]+pc_offset));
+
+                update_flags(reg[r0]);
+
+                
                 break;
             case OP_LDR:
                 break;
